@@ -33,6 +33,7 @@
   <script>
     const tg = window.Telegram.WebApp;
     tg.expand();
+    tg.ready();
 
     const products = [
       { id: 1, name: "Букет роз", price: 2500, img: "https://images.unsplash.com/photo-1561181286-d3fee7d55364?w=400" },
@@ -84,9 +85,21 @@
         const p = products.find(x => x.id == id);
         items.push({ name: p.name, qty: cart[id], price: p.price });
       }
-      // отправляем данные боту
-      tg.sendData(JSON.stringify({ items }));
-      tg.close();
+
+      const payload = JSON.stringify({ items });
+
+      // ПРОВЕРКА: работает ли sendData вообще
+      if (!tg.initData) {
+        tg.showAlert("⚠️ Открой магазин через кнопку '🌸 Открыть магазин' в чате с ботом, а не через ссылку!");
+        return;
+      }
+
+      try {
+        tg.sendData(payload);   // отправка боту
+        tg.close();
+      } catch (e) {
+        tg.showAlert("Ошибка отправки: " + e);
+      }
     }
 
     render();
