@@ -76,31 +76,39 @@
     }
 
     function order() {
-      if (Object.keys(cart).length === 0) {
-        tg.showAlert("Корзина пуста!");
-        return;
-      }
-      let items = [];
-      for (let id in cart) {
-        const p = products.find(x => x.id == id);
-        items.push({ name: p.name, qty: cart[id], price: p.price });
-      }
+  // 1) Сразу показываем, что вообще видит Telegram
+  tg.showAlert(
+    "Платформа: " + tg.platform +
+    "\nВерсия: " + tg.version +
+    "\ninitData: " + (tg.initData ? "ЕСТЬ" : "НЕТ") +
+    "\nТоваров в корзине: " + Object.keys(cart).length
+  );
 
-      const payload = JSON.stringify({ items });
+  if (Object.keys(cart).length === 0) {
+    tg.showAlert("Корзина пуста! Сначала добавь товар.");
+    return;
+  }
 
-      // ПРОВЕРКА: работает ли sendData вообще
-      if (!tg.initData) {
-        tg.showAlert("⚠️ Открой магазин через кнопку '🌸 Открыть магазин' в чате с ботом, а не через ссылку!");
-        return;
-      }
+  let items = [];
+  for (let id in cart) {
+    const p = products.find(x => x.id == id);
+    items.push({ name: p.name, qty: cart[id], price: p.price });
+  }
 
-      try {
-        tg.sendData(payload);   // отправка боту
-        tg.close();
-      } catch (e) {
-        tg.showAlert("Ошибка отправки: " + e);
-      }
-    }
+  const payload = JSON.stringify({ items });
+
+  // 2) Показываем что именно отправляем
+  tg.showAlert("Отправляю: " + payload);
+
+  try {
+    tg.sendData(payload);
+    // НЕ закрываем сразу, чтобы успеть увидеть результат
+    tg.showAlert("sendData выполнен! Закрываю окно.");
+    tg.close();
+  } catch (e) {
+    tg.showAlert("ОШИБКА sendData: " + e);
+  }
+}
 
     render();
   </script>
