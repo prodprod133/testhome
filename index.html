@@ -95,7 +95,14 @@
     items.push({ name: p.name, qty: cart[id], price: p.price });
   }
 
-  const payload = JSON.stringify({ items });
+  // в index.html функция order() должна слать ИМЕННО так:
+const payload = JSON.stringify({
+  items: [
+    { name: "Букет роз", qty: 1, price: 2500 }
+  ]
+});
+
+tg.sendData(payload);
 
   // 2) Показываем что именно отправляем
   tg.showAlert("Отправляю: " + payload);
