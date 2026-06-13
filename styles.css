@@ -1,0 +1,949 @@
+/* ========== RESET & BASE ========== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+:root {
+    --bg: #F2F2F7;
+    --bg-card: #FFFFFF;
+    --accent: #007AFF;
+    --accent-dark: #0056CC;
+    --text-primary: #1C1C1E;
+    --text-secondary: #6C6C70;
+    --text-tertiary: #AEAEB2;
+    --border: rgba(0,0,0,0.08);
+    --shadow: 0 4px 20px rgba(0,0,0,0.08);
+    --radius: 16px;
+    --radius-sm: 12px;
+    --nav-height: 60px;
+}
+
+html {
+    height: 100%;
+}
+
+body {
+    height: 100%;
+    font-family: -apple-system, 'SF Pro Display',
+                 'Helvetica Neue', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+}
+
+/* ========== WRAPPER ========== */
+.screens-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    /* Высота = весь экран минус навбар */
+    bottom: var(--nav-height);
+    overflow: hidden;
+}
+
+/* ========== SCREENS ========== */
+.screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg);
+    overflow-y: auto;
+    overflow-x: hidden;
+    opacity: 0;
+    transform: translateX(100%);
+    pointer-events: none;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Убираем padding-bottom — навбар снаружи */
+    padding-bottom: 20px;
+    -webkit-overflow-scrolling: touch;
+}
+
+.screen.active {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: all;
+}
+
+.screen.slide-out {
+    opacity: 0;
+    transform: translateX(-30px);
+}
+
+/* Скрываем скроллбар */
+.screen::-webkit-scrollbar { display: none; }
+.screen { scrollbar-width: none; }
+
+/* ========== BOTTOM NAV — ФИКСИРОВАННЫЙ ========== */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: var(--nav-height);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    z-index: 9999;
+    /* Важно — не двигается */
+    transform: none !important;
+    will-change: auto;
+}
+
+.nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-tertiary);
+    transition: color 0.2s;
+    padding: 6px 0;
+    height: 100%;
+}
+
+.nav-item span {
+    font-size: 10px;
+    font-weight: 500;
+    line-height: 1;
+}
+
+.nav-item.active {
+    color: var(--accent);
+}
+
+.nav-item:active {
+    opacity: 0.7;
+}
+
+/* ========== HERO ========== */
+.hero {
+    position: relative;
+    width: 100%;
+    height: 320px;
+    overflow: hidden;
+}
+
+.hero-image {
+    width: 100%;
+    height: 100%;
+}
+
+.hero-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.hero-overlay {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 24px 20px;
+    background: linear-gradient(
+        to top,
+        rgba(0,0,0,0.75) 0%,
+        rgba(0,0,0,0.3) 60%,
+        transparent 100%
+    );
+}
+
+.hero-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.hero-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: white;
+    line-height: 1.1;
+    letter-spacing: -0.5px;
+}
+
+.hero-title span {
+    color: rgba(255,255,255,0.9);
+}
+
+.hero-subtitle {
+    font-size: 15px;
+    color: rgba(255,255,255,0.75);
+    margin-top: 6px;
+}
+
+/* ========== STATS ========== */
+.stats-row {
+    display: flex;
+    align-items: center;
+    background: var(--bg-card);
+    margin: 16px;
+    border-radius: var(--radius);
+    padding: 16px 0;
+    box-shadow: var(--shadow);
+}
+
+.stat-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.stat-number {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.5px;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.stat-divider {
+    width: 1px;
+    height: 36px;
+    background: var(--border);
+}
+
+/* ========== SECTIONS ========== */
+.section {
+    padding: 0 16px 20px;
+}
+
+.section-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 14px
+        letter-spacing: -0.3px;
+}
+
+/* ========== AMENITIES ========== */
+.amenities-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.amenity-item {
+    background: var(--bg-card);
+    border-radius: var(--radius-sm);
+    padding: 14px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    box-shadow: var(--shadow);
+}
+
+.amenity-icon {
+    font-size: 24px;
+}
+
+.amenity-item span {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+/* ========== REVIEWS ========== */
+.reviews-scroll {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    scrollbar-width: none;
+}
+
+.reviews-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.review-card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 16px;
+    min-width: 260px;
+    box-shadow: var(--shadow);
+    flex-shrink: 0;
+}
+
+.review-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.review-avatar {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #007AFF, #5856D6);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+}
+
+.review-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.review-stars {
+    font-size: 11px;
+    margin-top: 2px;
+}
+
+.review-text {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+/* ========== BUTTONS ========== */
+.btn-primary {
+    width: 100%;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.2px;
+}
+
+.btn-large {
+    padding: 17px 24px;
+    font-size: 17px;
+}
+
+.btn-room {
+    padding: 13px 20px;
+    margin-top: 14px;
+    font-size: 15px;
+}
+
+.btn-primary:active {
+    transform: scale(0.97);
+    background: var(--accent-dark);
+    box-shadow: none;
+}
+
+/* ========== PAGE HEADER ========== */
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 16px 8px;
+    position: sticky;
+    top: 0;
+    background: rgba(242, 242, 247, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    z-index: 10;
+    border-bottom: 1px solid var(--border);
+}
+
+.back-btn {
+    width: 40px;
+    height: 40px;
+    background: var(--bg-card);
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    color: var(--accent);
+    transition: transform 0.2s;
+}
+
+.back-btn:active {
+    transform: scale(0.90);
+}
+
+.page-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.3px;
+}
+
+/* ========== ROOMS ========== */
+.rooms-list {
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.room-card {
+    background: var(--bg-card);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: transform 0.2s;
+}
+
+.room-card:active {
+    transform: scale(0.98);
+}
+
+.room-image-wrap {
+    position: relative;
+    height: 190px;
+}
+
+.room-image-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.room-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: #34C759;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 20px;
+}
+
+.room-badge-premium {
+    color: #FF9500;
+}
+
+.room-info {
+    padding: 16px;
+}
+
+.room-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.room-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.room-price {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.price-amount {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.price-period {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+}
+
+.room-features {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.feature-tag {
+    background: var(--bg);
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 10px;
+    border-radius: 8px;
+}
+
+/* ========== BOOKING FORM ========== */
+.booking-form {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.selected-room-card {
+    background: linear-gradient(135deg, #007AFF, #5856D6);
+    border-radius: var(--radius);
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.selected-room-icon {
+    font-size: 32px;
+}
+
+.selected-room-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.selected-room-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: white;
+    display: block;
+}
+
+.selected-room-price {
+    font-size: 13px;
+    color: rgba(255,255,255,0.75);
+    display: block;
+}
+
+.form-section {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.form-section-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.2px;
+}
+
+.dates-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+.date-input-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.dates-arrow {
+    font-size: 18px;
+    color: var(--text-tertiary);
+    padding-bottom: 10px;
+    flex-shrink: 0;
+}
+
+.input-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.input-field {
+    background: var(--bg);
+    border: 1.5px solid transparent;
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    font-size: 16px;
+    color: var(--text-primary);
+    font-family: inherit;
+    width: 100%;
+    transition: border-color 0.2s, background 0.2s;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.input-field:focus {
+    border-color: var(--accent);
+    background: white;
+}
+
+.textarea-field {
+    min-height: 90px;
+    resize: none;
+    line-height: 1.5;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+/* ========== COUNTER ========== */
+.counter-wrap {
+    display: flex;
+    align-items: center;
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    width: fit-content;
+}
+
+.counter-btn {
+    width: 44px;
+    height: 44px;
+    background: none;
+    border: none;
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--accent);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.counter-btn:active {
+    background: rgba(0,122,255,0.12);
+}
+
+.counter-value {
+    min-width: 44px;
+    text-align: center;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* ========== NIGHTS DISPLAY ========== */
+.nights-display {
+    background: rgba(0,122,255,0.08);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.nights-display span:first-child {
+    font-size: 14px;
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.nights-display span:last-child {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+/* ========== TOTAL CARD ========== */
+.total-card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.total-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 15px;
+    color: var(--text-secondary);
+}
+
+.total-row span:last-child {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.total-final {
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.total-final span:first-child {
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+.total-final span:last-child {
+    color: var(--accent) !important;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+/* ========== CONTACTS ========== */
+.contact-page {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.contact-map img {
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+.map-pin {
+    margin-top: 10px;
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.contact-cards {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+.contact-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px;
+    text-decoration: none;
+    color: inherit;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.2s;
+    cursor: pointer;
+}
+
+.contact-card:last-child {
+    border-bottom: none;
+}
+
+.contact-card:active {
+    background: rgba(0,0,0,0.04);
+}
+
+.contact-icon {
+    font-size: 22px;
+    width: 36px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.contact-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.contact-label {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+}
+
+.contact-value {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* ========== SUCCESS ========== */
+.success-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 85vh;
+    padding: 32px 24px;
+    text-align: center;
+}
+
+.success-animation {
+    margin-bottom: 28px;
+}
+
+.success-circle {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, #34C759, #30D158);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 20px 50px rgba(52,199,89,0.35);
+    animation: successPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) 
+               forwards;
+}
+
+@keyframes successPop {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    70% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.success-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.5px;
+    margin-bottom: 12px;
+}
+
+.success-subtitle {
+    font-size: 16px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    max-width: 280px;
+}
+
+.success-details {
+    width: 100%;
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-top: 24px;
+    box-shadow: var(--shadow);
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.success-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    padding: 2px 0;
+}
+
+.success-row span:first-child {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.success-row span:last-child {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* ========== ОШИБКА ПОЛЯ ========== */
+.input-error {
+    border-color: #FF3B30 !important;
+    background: rgba(255,59,48,0.05) !important;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%       { transform: translateX(-6px); }
+    40%       { transform: translateX(6px); }
+    60%       { transform: translateX(-4px); }
+    80%       { transform: translateX(4px); }
+}
+
+.input-shake {
+    animation: shake 0.4s ease;
+}
+
+/* ========== LOADING BUTTON ========== */
+.btn-loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.btn-loading span::after {
+    content: '...';
+}
+
+/* ========== MEDIA ========== */
+@media (max-height: 600px) {
+    .hero {
+        height: 220px;
+    }
+    .success-page {
+        min-height: 70vh;
+        padding: 20px 24px;
+    }
+    .success-circle {
+        width: 80px;
+        height: 80px;
+    }
+}
+
+@media (min-width: 480px) {
+    .screens-wrapper {
+        max-width: 480px;
+        margin: 0 auto;
+    }
+    .bottom-nav {
+        max-width: 480px;
+        left: 50%;
+        transform: translateX(-50%) !important;
+    }
+}
