@@ -1,347 +1,575 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Территория красоты 🌸</title>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<style>
-  :root {
-    --gold: #c9a227;
-    --gold-light: #e6c66b;
-    --dark: #1a1410;
-    --dark2: #241c15;
-    --cream: #f6f1e7;
-    --text: #efe9dd;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    font-family: 'Georgia', 'Times New Roman', serif;
-    background: linear-gradient(160deg, var(--dark) 0%, var(--dark2) 100%);
-    color: var(--text);
-    padding: 0 0 120px 0;
-    min-height: 100vh;
-  }
-
-  /* Шапка */
-  .header {
-    text-align: center;
-    padding: 36px 20px 28px;
-    background: linear-gradient(180deg, rgba(201,162,39,0.12), transparent);
-    border-bottom: 1px solid rgba(201,162,39,0.25);
-  }
-  .header h1 {
-    font-size: 30px;
-    letter-spacing: 2px;
-    background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--gold));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 6px;
-  }
-  .header p {
-    font-size: 13px;
-    color: var(--gold-light);
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    opacity: 0.85;
-  }
-
-  /* Товары */
-  .products {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    padding: 22px 16px;
-  }
-  .card {
-    background: linear-gradient(155deg, #2c2118, #1f1812);
-    border: 1px solid rgba(201,162,39,0.3);
-    border-radius: 18px;
-    padding: 18px 14px;
-    text-align: center;
-    box-shadow: 0 8px 22px rgba(0,0,0,0.45);
-    transition: transform .2s, box-shadow .2s;
-    position: relative;
-    overflow: hidden;
-  }
-  .card::before {
-    content: "";
-    position: absolute; top: 0; left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--gold), transparent);
-  }
-  .card:active { transform: scale(0.97); }
-  .card .emoji { font-size: 46px; margin-bottom: 10px; }
-  .card .name { font-size: 16px; margin-bottom: 6px; color: var(--cream); }
-  .card .price { font-size: 17px; color: var(--gold-light); margin-bottom: 12px; font-weight: bold; }
-
-  .btn-add {
-    background: linear-gradient(90deg, var(--gold), var(--gold-light));
-    color: var(--dark);
-    border: none;
-    padding: 9px 16px;
-    border-radius: 30px;
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-    letter-spacing: .5px;
-  }
-
-  /* Счётчик в карточке */
-  .counter { display: flex; align-items: center; justify-content: center; gap: 14px; }
-  .counter button {
-    width: 30px; height: 30px;
-    border-radius: 50%;
-    border: 1px solid var(--gold);
-    background: transparent;
-    color: var(--gold-light);
-    font-size: 18px; cursor: pointer;
-  }
-  .counter span { font-size: 16px; min-width: 20px; }
-
-  /* Корзина-плашка снизу */
-  .cart-bar {
-    position: fixed; bottom: 0; left: 0; right: 0;
-    background: linear-gradient(180deg, rgba(26,20,16,0.95), var(--dark));
-    border-top: 1px solid rgba(201,162,39,0.4);
-    padding: 16px 18px;
-    display: flex; align-items: center; justify-content: space-between;
-    backdrop-filter: blur(8px);
-    transform: translateY(120%);
-    transition: transform .3s;
-  }
-  .cart-bar.show { transform: translateY(0); }
-  .cart-bar .total { font-size: 17px; color: var(--gold-light); }
-  .cart-bar .total small { display:block; font-size: 11px; color: var(--text); opacity:.7; }
-  .btn-order {
-    background: linear-gradient(90deg, var(--gold), var(--gold-light));
-    color: var(--dark);
-    border: none; padding: 14px 26px;
-    border-radius: 30px; font-size: 15px;
-    font-weight: bold; cursor: pointer;
-    letter-spacing: 1px;
-  }
-
-  /* Модальное окно формы */
-  .modal {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.75);
-    display: none; align-items: flex-end;
-    z-index: 50;
-  }
-  .modal.show { display: flex; }
-  .modal-content {
-    background: linear-gradient(160deg, #2c2118, #1a1410);
-    width: 100%;
-    border-radius: 24px 24px 0 0;
-    padding: 26px 22px 30px;
-    border-top: 2px solid var(--gold);
-    max-height: 90vh; overflow-y: auto;
-  }
-  .modal-content h2 {
-    text-align: center; color: var(--gold-light);
-    margin-bottom: 20px; font-size: 22px; letter-spacing: 1px;
-  }
-  .field { margin-bottom: 16px; }
-  .field label {
-    display:block; font-size: 13px; color: var(--gold-light);
-    margin-bottom: 6px; letter-spacing: .5px;
-  }
-  .field input {
-    width: 100%;
-    padding: 13px 14px;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(201,162,39,0.35);
-    border-radius: 12px;
-    color: var(--text);
-    font-size: 15px;
-    font-family: inherit;
-  }
-  .field input:focus { outline: none; border-color: var(--gold); }
-
-  .order-summary {
-    background: rgba(201,162,39,0.08);
-    border: 1px solid rgba(201,162,39,0.25);
-    border-radius: 12px;
-    padding: 14px; margin-bottom: 18px;
-    font-size: 14px; line-height: 1.7;
-  }
-  .order-summary .sum-total {
-    border-top: 1px solid rgba(201,162,39,0.3);
-    margin-top: 8px; padding-top: 8px;
-    color: var(--gold-light); font-weight: bold; font-size: 16px;
-  }
-
-  .btn-confirm {
-    width: 100%;
-    background: linear-gradient(90deg, var(--gold), var(--gold-light));
-    color: var(--dark); border: none;
-    padding: 16px; border-radius: 14px;
-    font-size: 16px; font-weight: bold;
-    cursor: pointer; letter-spacing: 1px;
-  }
-  .btn-close {
-    width: 100%; background: transparent;
-    color: var(--text); border: none;
-    padding: 12px; margin-top: 10px;
-    font-size: 14px; cursor: pointer; opacity:.7;
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, 
+          viewport-fit=cover">
+    <title>Гостевой дом</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
+    <!-- ЭКРАН 1: ГЛАВНАЯ -->
+    <div id="screen-home" class="screen active">
+        
+        <!-- Hero секция -->
+        <div class="hero">
+            <div class="hero-image">
+                <img src="https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800" 
+                     alt="Гостевой дом">
+            </div>
+            <div class="hero-overlay">
+                <div class="hero-badge">Крым • У моря</div>
+                <h1 class="hero-title">Гостевой дом<br><span>«Бриз»</span></h1>
+                <p class="hero-subtitle">Ваш уютный отдых у Чёрного моря</p>
+            </div>
+        </div>
 
-  <div class="header">
-    <h1>Территория красоты</h1>
-    <p>Цветы премиум-класса</p>
-  </div>
+        <!-- Быстрая статистика -->
+        <div class="stats-row">
+            <div class="stat-item">
+                <span class="stat-number">4.9</span>
+                <span class="stat-label">⭐ Рейтинг</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+                <span class="stat-number">50м</span>
+                <span class="stat-label">🌊 До моря</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+                <span class="stat-number">8</span>
+                <span class="stat-label">🏠 Номеров</span>
+            </div>
+        </div>
 
-  <div class="products" id="products"></div>
+        <!-- Кнопка бронирования -->
+        <div class="section">
+            <button class="btn-primary btn-large" onclick="goToScreen('screen-rooms')">
+                <span>Выбрать номер</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <path d="M9 18l6-6-6-6" stroke="white" stroke-width="2.5" 
+                          stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
 
-  <!-- Плашка корзины -->
-  <div class="cart-bar" id="cartBar">
-    <div class="total">
-      <span id="cartTotal">0 ₽</span>
-      <small id="cartCount">0 товаров</small>
+        <!-- Удобства -->
+        <div class="section">
+            <h2 class="section-title">Удобства</h2>
+            <div class="amenities-grid">
+                <div class="amenity-item">
+                    <div class="amenity-icon">🌊</div>
+                    <span>50м до моря</span>
+                </div>
+                <div class="amenity-item">
+                    <div class="amenity-icon">🅿️</div>
+                    <span>Парковка</span>
+                </div>
+                <div class="amenity-item">
+                    <div class="amenity-icon">📶</div>
+                    <span>Wi-Fi</span>
+                </div>
+                <div class="amenity-item">
+                    <div class="amenity-icon">❄️</div>
+                    <span>Кондиционер</span>
+                </div>
+                <div class="amenity-item">
+                    <div class="amenity-icon">🍳</div>
+                    <span>Кухня</span>
+                </div>
+                <div class="amenity-item">
+                    <div class="amenity-icon">🏊</div>
+                    <span>Бассейн</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Отзывы -->
+        <div class="section">
+            <h2 class="section-title">Отзывы гостей</h2>
+            <div class="reviews-scroll">
+                <div class="review-card">
+                    <div class="review-header">
+                        <div class="review-avatar">А</div>
+                        <div>
+                            <div class="review-name">Анна М.</div>
+                            <div class="review-stars">⭐⭐⭐⭐⭐</div>
+                        </div>
+                    </div>
+                    <p class="review-text">Прекрасное место! До моря пешком, 
+                    очень уютно и чисто. Обязательно вернёмся!</p>
+                </div>
+                <div class="review-card">
+                    <div class="review-header">
+                        <div class="review-avatar">М</div>
+                        <div>
+                            <div class="review-name">Михаил К.</div>
+                            <div class="review-stars">⭐⭐⭐⭐⭐</div>
+                        </div>
+                    </div>
+                    <p class="review-text">Хозяева очень приветливые, 
+                    всё что нужно есть. Море в 50 метрах!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Навигация -->
+        <div class="bottom-nav">
+            <button class="nav-item active" onclick="goToScreen('screen-home')">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" 
+                          stroke="currentColor" stroke-width="2" 
+                          stroke-linecap="round"/>
+                </svg>
+                <span>Главная</span>
+            </button>
+            <button class="nav-item" onclick="goToScreen('screen-rooms')">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="3" width="18" height="18" rx="3" 
+                          stroke="currentColor" stroke-width="2"/>
+                    <path d="M3 9h18" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                <span>Номера</span>
+            </button>
+            <button class="nav-item" onclick="goToScreen('screen-booking')">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="4" width="18" height="18" rx="2" 
+                          stroke="currentColor" stroke-width="2"/>
+                    <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" 
+                          stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <span>Бронь</span>
+            </button>
+            <button class="nav-item" onclick="goToScreen('screen-contact')">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                    <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 
+                          01-8.63-3.07A19.5 19.5 0 013.07 9.8 19.79 19.79 0 
+                          01.22 1.18 2 2 0 012.22 0h3a2 2 0 012 1.72c.127.96.361 
+                          1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 
+                          006.16 6.16l1.27-1.27a2 2 0 012.11-.45c.907.339 
+                          1.85.573 2.81.7A2 2 0 0122 16.92z" 
+                          stroke="currentColor" stroke-width="2"/>
+                </svg>
+                <span>Контакты</span>
+            </button>
+        </div>
     </div>
-    <button class="btn-order" onclick="openModal()">Оформить</button>
-  </div>
 
-  <!-- Модальное окно с формой -->
-  <div class="modal" id="modal">
-    <div class="modal-content">
-      <h2>Оформление заказа</h2>
+    <!-- ЭКРАН 2: НОМЕРА -->
+    <div id="screen-rooms" class="screen">
+        <div class="page-header">
+            <button class="back-btn" onclick="goToScreen('screen-home')">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M15 18l-6-6 6-6" stroke="currentColor" 
+                          stroke-width="2.5" stroke-linecap="round"/>
+                </svg>
+            </button>
+            <h1 class="page-title">Номера</h1>
+            <div style="width:40px"></div>
+        </div>
 
-      <div class="order-summary" id="orderSummary"></div>
+        <div class="rooms-list">
+            <!-- Номер 1 -->
+            <div class="room-card" onclick="selectRoom(1)">
+                <div class="room-image-wrap">
+                    <img src="https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=600" 
+                         alt="Стандарт">
+                    <div class="room-badge">Свободен</div>
+                </div>
+                <div class="room-info">
+                    <div class="room-header">
+                        <h3 class="room-name">Стандарт</h3>
+                        <div class="room-price">
+                            <span class="price-amount">2 500</span>
+                            <span class="price-period">₽/ночь</span>
+                        </div>
+                    </div>
+                    <div class="room-features">
+                        <span class="feature-tag">👥 2 гостя</span>
+                        <span class="feature-tag">📐 22 м²</span>
+                        <span class="feature-tag">🛏 2 кровати</span>
+                    </div>
+                    <button class="btn-primary btn-room" onclick="selectRoom(1)">
+                        Забронировать
+                    </button>
+                </div>
+            </div>
 
-      <div class="field">
-        <label>Ваше имя</label>
-        <input type="text" id="name" placeholder="Например, Анна">
-      </div>
-      <div class="field">
-        <label>Телефон</label>
-        <input type="tel" id="phone" placeholder="+7 (___) ___-__-__">
-      </div>
-      <div class="field">
-        <label>Адрес доставки</label>
-        <input type="text" id="address" placeholder="Город, улица, дом, квартира">
-      </div>
+            <!-- Номер 2 -->
+            <div class="room-card" onclick="selectRoom(2)">
+                <div class="room-image-wrap">
+                    <img src="https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=600" 
+                         alt="Люкс">
+                    <div class="room-badge room-badge-premium">Популярный</div>
+                </div>
+                <div class="room-info">
+                    <div class="room-header">
+                        <h3 class="room-name">Люкс с видом</h3>
+                        <div class="room-price">
+                            <span class="price-amount">4 500</span>
+                            <span class="price-period">₽/ночь</span>
+                        </div>
+                    </div>
+                    <div class="room-features">
+                        <span class="feature-tag">👥 3 гостя</span>
+                        <span class="feature-tag">📐 35 м²</span>
+                        <span class="feature-tag">🌊 Вид на море</span>
+                    </div>
+                    <button class="btn-primary btn-room" onclick="selectRoom(2)">
+                        Забронировать
+                    </button>
+                </div>
+            </div>
 
-      <button class="btn-confirm" onclick="sendOrder()">Подтвердить заказ</button>
-      <button class="btn-close" onclick="closeModal()">Отмена</button>
+            <!-- Номер 3 -->
+            <div class="room-card" onclick="selectRoom(3)">
+                <div class="room-image-wrap">
+                    <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600" 
+                         alt="Семейный">
+                    <div class="room-badge">Свободен</div>
+                </div>
+                <div class="room-info">
+                    <div class="room-header">
+                        <h3 class="room-name">Семейный</h3>
+                        <div class="room-price">
+                            <span class="price-amount">6 000</span>
+                            <span class="price-period">₽/ночь</span>
+                        </div>
+                    </div>
+                    <div class="room-features">
+                        <span class="feature-tag">👥 5 гостей</span>
+                        <span class="feature-tag">📐 55 м²</span>
+                        <span class="feature-tag">🍳 Кухня</span>
+                    </div>
+                    <button class="btn-primary btn-room" onclick="selectRoom(3)">
+                        Забронировать
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="bottom-nav">
+            <button class="nav-item" onclick="goToScreen('screen-home')">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" 
+                          stroke="currentColor" stroke-width="2" 
+                          stroke-linecap="round"/>
+                </svg>
+                <span>Главная</span>
+            </button>
+            <button class="nav-item active" onclick="goToScreen('screen-rooms')">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="3" width="18" height="18" rx="3" 
+                          stroke="currentColor" stroke-width="2"/>
+                    <path d="M3 9h18" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                <span>Номера</span>
+            </button>
+            <button class="nav-item" onclick="goToScreen('screen-booking')">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="4" width="18" height="18" rx="2" 
+                          stroke="currentColor" stroke-width="2"/>
+                    <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" 
+                          stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <span>Бронь</span>
+            </button>
+            <button class="nav-item" onclick="goToScreen('screen-contact')">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                    <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 
+                          01-8.63-3.07A19.5 19.5 0 013.07 9.8 19.79 19.79 0 
+                          01.22 1.18 2 2 0 012.22 0h3a2 2 0 012 1.72c.127.96.361 
+                          1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 
+                          006.16 6.16l1.27-1.27a2 2 0 012.11-.45c.907.339 
+                          1.85.573 2.81.7A2 2 0 0122 16.92z" 
+                          stroke="currentColor" stroke-width="2"/>
+                </svg>
+                <span>Контакты</span>
+            </button>
+        </div>
     </div>
-  </div>
 
-<script>
-  const tg = window.Telegram.WebApp;
-  tg.expand();
-  tg.ready();
+    <!-- ЭКРАН 3: БРОНИРОВАНИЕ -->
+    <div id="screen-booking" class="screen">
+        <div class="page-header">
+            <button class="back-btn" onclick="goBack()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M15 18l-6-6 6-6" stroke="currentColor" 
+                          stroke-width="2.5" stroke-linecap="round"/>
+                </svg>
+            </button>
+            <h1 class="page-title">Бронирование</h1>
+            <div style="width:40px"></div>
+        </div>
 
-  // Каталог товаров
-  const products = [
-    { id: 1, name: "Букет роз",        price: 2500, emoji: "🌹" },
-    { id: 2, name: "Пионы нежные",     price: 3200, emoji: "🌸" },
-    { id: 3, name: "Тюльпаны",         price: 1800, emoji: "🌷" },
-    { id: 4, name: "Орхидея в кашпо",  price: 4500, emoji: "🪴" },
-    { id: 5, name: "Букет полевой",    price: 2100, emoji: "💐" },
-    { id: 6, name: "Лилии белые",      price: 2800, emoji: "🌼" },
-  ];
+        <div class="booking-form">
+            <!-- Выбранный номер -->
+            <div class="selected-room-card" id="selected-room-display">
+                <div class="selected-room-icon">🏠</div>
+                <div class="selected-room-info">
+                    <span class="selected-room-name" id="selected-room-name">
+                        Выберите номер
+                    </span>
+                    <span class="selected-room-price" id="selected-room-price">
+                        Перейдите во вкладку Номера
+                    </span>
+                </div>
+            </div>
 
-  let cart = {}; // { id: qty }
+            <!-- Даты -->
+            <div class="form-section">
+                <h3 class="form-section-title">Даты проживания</h3>
+                <div class="dates-row">
+                    <div class="date-input-wrap">
+                        <label class="input-label">Заезд</label>
+                        <input type="date" id="check-in" class="input-field" 
+                               onchange="calculateTotal()">
+                    </div>
+                    <div class="dates-arrow">→</div>
+                    <div class="date-input-wrap">
+                        <label class="input-label">Выезд</label>
+                        <input type="date" id="check-out" class="input-field" 
+                               onchange="calculateTotal()">
+                    </div>
+                </div>
+                <!-- Итог ночей -->
+                <div class="nights-display" id="nights-display" 
+                     style="display:none">
+                    <span id="nights-count">0 ночей</span>
+                    <span id="total-price">0 ₽</span>
+                </div>
+            </div>
 
-  // Рендер карточек
-  function renderProducts() {
-    const box = document.getElementById("products");
-    box.innerHTML = "";
-    products.forEach(p => {
-      const qty = cart[p.id] || 0;
-      const card = document.createElement("div");
-      card.className = "card";
-      card.innerHTML = `
-        <div class="emoji">${p.emoji}</div>
-        <div class="name">${p.name}</div>
-        <div class="price">${p.price} ₽</div>
-        ${qty === 0
-          ? `<button class="btn-add" onclick="addItem(${p.id})">В корзину</button>`
-          : `<div class="counter">
-               <button onclick="changeQty(${p.id},-1)">−</button>
-               <span>${qty}</span>
-               <button onclick="changeQty(${p.id},1)">+</button>
-             </div>`}
-      `;
-      box.appendChild(card);
-    });
-  }
+            <!-- Данные гостя -->
+            <div class="form-section">
+                <h3 class="form-section-title">Данные гостя</h3>
+                <div class="input-group">
+                    <label class="input-label">Имя и фамилия</label>
+                    <input type="text" id="guest-name" class="input-field" 
+                           placeholder="Иван Иванов">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Телефон</label>
+                    <input type="tel" id="guest-phone" class="input-field" 
+                           placeholder="+7 (999) 999-99-99">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Количество гостей</label>
+                    <div class="counter-wrap">
+                        <button class="counter-btn" onclick="changeGuests(-1)">−</button>
+                        <span class="counter-value" id="guests-count">2</span>
+                        <button class="counter-btn" onclick="changeGuests(1)">+</button>
+                    </div>
+                </div>
+            </div>
 
-  function addItem(id) { cart[id] = 1; update(); }
-  function changeQty(id, d) {
-    cart[id] = (cart[id] || 0) + d;
-    if (cart[id] <= 0) delete cart[id];
-    update();
-  }
+            <!-- Пожелания -->
+            <div class="form-section">
+                <h3 class="form-section-title">Пожелания</h3>
+                <textarea id="wishes" class="input-field textarea-field" 
+                          placeholder="Ранний заезд, детская кроватка...">
+                </textarea>
+            </div>
 
-  function update() {
-    renderProducts();
-    const bar = document.getElementById("cartBar");
-    let total = 0, count = 0;
-    for (let id in cart) {
-      const p = products.find(x => x.id == id);
-      total += p.price * cart[id];
-      count += cart[id];
-    }
-    document.getElementById("cartTotal").textContent = total + " ₽";
-    document.getElementById("cartCount").textContent = count + " товаров";
-    bar.classList.toggle("show", count > 0);
-  }
+            <!-- Итого -->
+            <div class="total-card" id="total-card" style="display:none">
+                <div class="total-row">
+                    <span>Номер</span>
+                    <span id="total-room-name">—</span>
+                </div>
+                <div class="total-row">
+                    <span>Количество ночей</span>
+                    <span id="total-nights">—</span>
+                </div>
+                <div class="total-row total-final">
+                    <span>Итого</span>
+                    <span id="total-amount">—</span>
+                </div>
+            </div>
 
-  // Открыть модалку с итогом заказа
-  function openModal() {
-    const summary = document.getElementById("orderSummary");
-    let html = "", total = 0;
-    for (let id in cart) {
-      const p = products.find(x => x.id == id);
-      const sum = p.price * cart[id];
-      total += sum;
-      html += `${p.emoji} ${p.name} × ${cart[id]} — ${sum} ₽<br>`;
-    }
-    html += `<div class="sum-total">Итого: ${total} ₽</div>`;
-    summary.innerHTML = html;
-    document.getElementById("modal").classList.add("show");
-  }
+            <button class="btn-primary btn-large" onclick="submitBooking()">
+                <span>Подтвердить бронирование</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <path d="M9 18l6-6-6-6" stroke="white" stroke-width="2.5" 
+                          stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
 
-  function closeModal() {
-    document.getElementById("modal").classList.remove("show");
-  }
+        <div class="bottom-nav">
+            <button class="nav-item" onclick="goToScreen('screen-home')">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" 
+                          stroke="currentColor" stroke-width="2" 
+                          stroke-linecap="round"/>
+                </svg>
+                <span>Главная</span>
+            </button>
+            <button class="nav-item" onclick="goToScreen('screen-rooms')">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="3" width="18" height="18" rx="3" 
+                          stroke="currentColor" stroke-width="2"/>
+                    <path d="M3 9h18" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                <span>Номера</span>
+            </button>
+            <button class="nav-item active" onclick="goToScreen('screen-booking')">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="4" width="18" height="18" rx="2" 
+                          stroke="currentColor" stroke-width="2"/>
+                    <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" 
+                          stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <span>Бронь</span>
+            </button>
+            <button class="nav-item" onclick="goToScreen('screen-contact')">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                    <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 
+                          01-8.63-3.07A19.5 19.5 0 013.07 9.8 19.79 19.79 0 
+                          01.22 1.18 2 2 0 012.22 0h3a2 2 0 012 1.72c.127.96.361 
+                          1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 
+                          006.16 6.16l1.27-1.27a2 2 0 012.11-.45c.907.339 
+                          1.85.573 2.81.7A2 2 0 0122 16.92z" 
+                          stroke="currentColor" stroke-width="2"/>
+                </svg>
+                <span>Контакты</span>
+            </button>
+        </div>
+    </div>
 
-  // Отправка заказа боту
-  function sendOrder() {
-    const name = document.getElementById("name").value.trim();
-    const phone = document.getElementById("phone").value.trim();
-    const address = document.getElementById("address").value.trim();
+    <!-- ЭКРАН 4: КОНТАКТЫ -->
+    <div id="screen-contact" class="screen">
+        <div class="page-header">
+            <button class="back-btn" onclick="goToScreen('screen-home')">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M15 18l-6-6 6-6" stroke="currentColor" 
+                          stroke-width="2.5" stroke-linecap="round"/>
+                </svg>
+            </button>
+            <h1 class="page-title">Контакты</h1>
+            <div style="width:40px"></div>
+        </div>
 
-    if (!name || !phone || !address) {
-      tg.showAlert("Пожалуйста, заполните имя, телефон и адрес.");
-      return;
-    }
+        <div class="contact-page">
+            <div class="contact-map">
+                <img src="https://images.unsplash.com/photo-1524813686514-a57563d77965?w=800" 
+                     alt="Расположение" style="width:100%;height:200px;
+                     object-fit:cover;border-radius:16px;">
+                <div class="map-pin">📍 Крым, Ялта, ул. Морская 15</div>
+            </div>
 
-    let items = [], total = 0;
-    for (let id in cart) {
-      const p = products.find(x => String(x.id) === String(id));
-      if (!p) continue;
-      items.push({ name: p.name, qty: cart[id], price: p.price });
-      total += p.price * cart[id];
-    }
+            <div class="contact-cards">
+                <a href="tel:+79001234567" class="contact-card">
+                    <div class="contact-icon">📞</div>
+                    <div class="contact-info">
+                        <span class="contact-label">Телефон</span>
+                        <span class="contact-value">+7 (900) 123-45-67</span>
+                    </div>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M9 18l6-6-6-6" stroke="#999" stroke-width="2"/>
+                    </svg>
+                </a>
 
-    const data = {
-      customer: { name, phone, address },
-      items: items,
-      total: total
-    };
+                <a href="https://t.me/hotel_briz" class="contact-card">
+                    <div class="contact-icon">✈️</div>
+                    <div class="contact-info">
+                        <span class="contact-label">Telegram</span>
+                        <span class="contact-value">@hotel_briz</span>
+                    </div>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M9 18l6-6-6-6" stroke="#999" stroke-width="2"/>
+                    </svg>
+                </a>
 
-    tg.sendData(JSON.stringify(data));
-    tg.close();
-  }
+                <div class="contact-card">
+                    <div class="contact-icon">🕐</div>
+                    <div class="contact-info">
+                        <span class="contact-label">Заезд / Выезд</span>
+                        <span class="contact-value">14:00 / 12:00</span>
+                    </div>
+                </div>
 
-  renderProducts();
-</script>
+                <div class="contact-card">
+                    <div class="contact-icon">📍</div>
+                    <div class="contact-info">
+                        <span class="contact-label">Адрес</span>
+                        <span class="contact-value">Ялта, ул. Морская 15</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bottom-nav">
+            <button class="nav-item" onclick="goToScreen('screen-home')">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" 
+                          stroke="currentColor" stroke-width="2" 
+                          stroke-linecap="round"/>
+                </svg>
+                <span>Главная</span>
+            </button>
+            <button class="nav-item" onclick="goToScreen('screen-rooms')">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="3" width="18" height="18" rx="3" 
+                          stroke="currentColor" stroke-width="2"/>
+                    <path d="M3 9h18" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                <span>Номера</span>
+            </button>
+            <button class="nav-item" onclick="goToScreen('screen-booking')">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="4" width="18" height="18" rx="2" 
+                          stroke="currentColor" stroke-width="2"/>
+                    <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" 
+                          stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <span>Бронь</span>
+            </button>
+            <button class="nav-item active">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                    <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 
+                          01-8.63-3.07A19.5 19.5 0 013.07 9.8 19.79 19.79 0 
+                          01.22 1.18 2 2 0 012.22 0h3a2 2 0 012 1.72c.127.96.361 
+                          1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 
+                          006.16 6.16l1.27-1.27a2 2 0 012.11-.45c.907.339 
+                          1.85.573 2.81.7A2 2 0 0122 16.92z" 
+                          stroke="currentColor" stroke-width="2"/>
+                </svg>
+                <span>Контакты</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ЭКРАН 5: УСПЕХ -->
+    <div id="screen-success" class="screen">
+        <div class="success-page">
+            <div class="success-animation">
+                <div class="success-circle">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none">
+                        <path d="M20 6L9 17l-5-5" stroke="white" 
+                              stroke-width="2.5" stroke-linecap="round" 
+                              stroke-linejoin="round"/>
+                    </svg>
+                </div>
+            </div>
+            
+            <h2 class="success-title">Заявка отправлена!</h2>
+            <p class="success-subtitle">Мы свяжемся с вами в течение 30 минут 
+            для подтверждения бронирования</p>
+
+            <div class="success-details" id="success-details">
+                <!-- Заполняется через JS -->
+            </div>
+
+            <button class="btn-primary btn-large" 
+                    onclick="goToScreen('screen-home')" 
+                    style="margin-top:32px">
+                <span>На главную</span>
+            </button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
 </body>
 </html>
