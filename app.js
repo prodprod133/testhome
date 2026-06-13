@@ -382,7 +382,21 @@ document.addEventListener('DOMContentLoaded', function () {
     applyTelegramTheme();
     setupMainButton();
 
-    // Плавное появление приложения
+    // Фиксим высоту под Telegram
+    function fixHeight() {
+        const vh = window.innerHeight;
+        document.querySelectorAll('.screen').forEach(function(screen) {
+            screen.style.height = vh + 'px';
+        });
+    }
+
+    fixHeight();
+
+    // При изменении размера (клавиатура и тд)
+    window.addEventListener('resize', fixHeight);
+    tg.onEvent('viewportChanged', fixHeight);
+
+    // Плавное появление
     document.body.style.opacity = '0';
     setTimeout(function () {
         document.body.style.transition = 'opacity 0.3s ease';
