@@ -30,8 +30,14 @@ let state = {
 
 // ========== НАВИГАЦИЯ ==========
 function goToScreen(screenId) {
-    const screens = document.querySelectorAll('.screen');
-    screens.forEach(s => s.classList.remove('active'));
+    const current = document.querySelector('.screen.active');
+    if (current) {
+        state.prevScreen = current.id;
+    }
+
+    document.querySelectorAll('.screen').forEach(s => {
+        s.classList.remove('active');
+    });
 
     const next = document.getElementById(screenId);
     if (next) {
@@ -39,20 +45,12 @@ function goToScreen(screenId) {
         next.scrollTop = 0;
     }
 
-    // ✅ ИСПРАВЛЕНО — обновляем навбар сразу
     updateNav(screenId);
 
-    // Telegram кнопки
     if (screenId === 'screen-home' || screenId === 'screen-success') {
-        tg.BackButton.hide();
+        try { tg.BackButton.hide(); } catch(e) {}
     } else {
-        tg.BackButton.show();
-    }
-
-    // Запоминаем предыдущий экран
-    const current = document.querySelector('.screen.active');
-    if (current && current.id !== screenId) {
-        state.prevScreen = current.id;
+        try { tg.BackButton.show(); } catch(e) {}
     }
 }
 
@@ -60,14 +58,12 @@ function goBack() {
     goToScreen(state.prevScreen || 'screen-home');
 }
 
-// ========== ✅ ИСПРАВЛЕННЫЙ НАВБАР ==========
+// ========== НАВБАР ==========
 function updateNav(screenId) {
-    // Убираем активный класс со всех
     document.querySelectorAll('.nav-item').forEach(btn => {
         btn.classList.remove('active');
     });
 
-    // Маппинг экран → id кнопки навбара
     const navMap = {
         'screen-home':    'nav-home',
         'screen-rooms':   'nav-rooms',
@@ -79,9 +75,7 @@ function updateNav(screenId) {
     const navId = navMap[screenId];
     if (navId) {
         const navBtn = document.getElementById(navId);
-        if (navBtn) {
-            navBtn.classList.add('active');
-        }
+        if (navBtn) navBtn.classList.add('active');
     }
 }
 
@@ -92,12 +86,12 @@ function selectRoom(roomId) {
 
     const room = rooms[roomId];
 
-    const nameEl = document.getElementById('selected-room-name');
+    const nameEl  = document.getElementById('selected-room-name');
     const priceEl = document.getElementById('selected-room-price');
     const guestsEl = document.getElementById('guests-count');
 
-    if (nameEl)  nameEl.textContent  = room.name;
-    if (priceEl) priceEl.textContent = `${room.price.toLocaleString('ru')} ₽ / ночь`;
+    if (nameEl)   nameEl.textContent  = room.name;
+    if (priceEl)  priceEl.textContent = `${room.price.toLocaleString('ru')} ₽ / ночь`;
     if (guestsEl) guestsEl.textContent = '2';
 
     calculateTotal();
@@ -175,34 +169,36 @@ function declNights(n) {
     return 'ночей';
 }
 
-// ========== ✅ ИСПРАВЛЕННАЯ ОТПРАВКА ==========
+// ========== ОТПРАВКА ==========
 function submitBooking() {
-    const nameEl    = document.getElementById('guest-name');
-    const phoneEl   = document.getElementById('guest-phone');
-    const checkInEl = document.getElementById('check-in');
-    const checkOutEl= document.getElementById('check-out');
-    const wishesEl  = document.getElementById('wishes');
+    console.log('=== submitBooking вызван! ===');
 
-    const name    = nameEl?.value.trim()    || '';
-    const phone   = phoneEl?.value.trim()   || '';
-    const checkIn = checkInEl?.value        || '';
-    const checkOut= checkOutEl?.value       || '';
-    const wishes  = wishesEl?.value.trim()  || '';
+    const nameEl     = document.getElementById('guest-name');
+    const phoneEl    = document.getElementById('guest-phone');
+    const checkInEl  = document.getElementById('check-in');
+    const checkOutEl = document.getElementById('check-out');
+    const wishesEl   = document.getElementById('wishes');
 
-    // --- Валидация ---
+    const name     = nameEl?.value.trim()    || '';
+    const phone    = phoneEl?.value.trim()   || '';
+    const checkIn  = checkInEl?.value        || '';
+    const checkOut = checkOutEl?.value       || '';
+    const wishes   = wishesEl?.value.trim()  || '';
+
+    // Валидация
     if (!state.selectedRoom) {
-        showAlert('⚠️ Выберите номер во вкладке "Номера"');
+        showAlert('⚠️ Выберите номер во вкладке Номера');
         goToScreen('screen-rooms');
         return;
     }
     if (!name) {
         showAlert('⚠️ Введите имя и фамилию');
-        shakeField('guest-name');
+        nameEl?.focus();
         return;
     }
     if (!phone) {
         showAlert('⚠️ Введите номер телефона');
-        shakeField('guest-phone');
+        phoneEl?.focus();
         return;
     }
     if (!checkIn) {
@@ -215,7 +211,7 @@ function submitBooking() {
     }
 
     const nights = Math.round(
-        (new Date(checkOut) - new Date(checkIn)) / (1000*60*60*24)
+        (new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24)
     );
 
     if (nights <= 0) {
@@ -239,7 +235,9 @@ function submitBooking() {
         wishes:   wishes || 'Нет'
     };
 
-    // Кнопка — загрузка
+    console.log('📦 Данные бронирования:', bookingData);
+
+    // Блокируем кнопку
     const btn = document.getElementById('submit-btn');
     if (btn) {
         btn.disabled = true;
@@ -248,10 +246,10 @@ function submitBooking() {
 
     haptic('success');
 
-    // ✅ ОТПРАВКА В БОТ
+    // ОТПРАВКА
     try {
         tg.sendData(JSON.stringify(bookingData));
-        console.log('✅ sendData отправлен:', bookingData);
+        console.log('✅ sendData отправлен!');
     } catch(e) {
         console.error('❌ sendData ошибка:', e);
     }
@@ -263,7 +261,7 @@ function submitBooking() {
             btn.disabled = false;
             btn.textContent = 'Забронировать';
         }
-    }, 600);
+    }, 800);
 }
 
 // ========== ЭКРАН УСПЕХА ==========
@@ -272,33 +270,28 @@ function showSuccess(data) {
     if (el) {
         el.innerHTML = `
             <div class="success-row">
-                <span>Номер</span><span>${data.room}</span>
+                <span>Номер</span>
+                <span>${data.room}</span>
             </div>
             <div class="success-row">
-                <span>Заезд</span><span>${data.checkIn}</span>
+                <span>Заезд</span>
+                <span>${data.checkIn}</span>
             </div>
             <div class="success-row">
-                <span>Выезд</span><span>${data.checkOut}</span>
+                <span>Выезд</span>
+                <span>${data.checkOut}</span>
             </div>
             <div class="success-row">
                 <span>Ночей</span>
                 <span>${data.nights} ${declNights(data.nights)}</span>
             </div>
             <div class="success-row">
-                <span>Гостей</span><span>${data.guests}</span>
+                <span>Гостей</span>
+                <span>${data.guests}</span>
             </div>
-            <div class="success-row" style="
-                padding-top:12px;
-                border-top:1px solid var(--border);
-                margin-top:4px">
-                <span style="font-weight:700;color:var(--text-primary)">
-                    Итого
-                </span>
-                <span style="font-weight:700;
-                             color:var(--accent);
-                             font-size:18px">
-                    ${data.total.toLocaleString('ru')} ₽
-                </span>
+            <div class="success-row success-total">
+                <span>Итого</span>
+                <span>${data.total.toLocaleString('ru')} ₽</span>
             </div>
         `;
     }
@@ -312,16 +305,6 @@ function formatDate(dateStr) {
         month: '2-digit',
         year:  'numeric'
     });
-}
-
-function shakeField(fieldId) {
-    const field = document.getElementById(fieldId);
-    if (!field) return;
-    field.classList.add('input-error', 'input-shake');
-    field.focus();
-    setTimeout(() => {
-        field.classList.remove('input-error', 'input-shake');
-    }, 2500);
 }
 
 function showAlert(msg) {
@@ -346,10 +329,10 @@ function haptic(type = 'light') {
 
 // ========== ДАТЫ ==========
 function setMinDates() {
-    const today = new Date();
-    const yyyy  = today.getFullYear();
-    const mm    = String(today.getMonth() + 1).padStart(2, '0');
-    const dd    = String(today.getDate()).padStart(2, '0');
+    const today    = new Date();
+    const yyyy     = today.getFullYear();
+    const mm       = String(today.getMonth() + 1).padStart(2, '0');
+    const dd       = String(today.getDate()).padStart(2, '0');
     const todayStr = `${yyyy}-${mm}-${dd}`;
 
     const checkIn  = document.getElementById('check-in');
@@ -359,14 +342,13 @@ function setMinDates() {
     checkIn.min  = todayStr;
     checkOut.min = todayStr;
 
-    checkIn.addEventListener('change', function() {
-        const nextDay = new Date(this.value);
-        nextDay.setDate(nextDay.getDate() + 1);
-        const ny = nextDay.getFullYear();
-        const nm = String(nextDay.getMonth()+1).padStart(2,'0');
-        const nd = String(nextDay.getDate()).padStart(2,'0');
+    checkIn.addEventListener('change', function () {
+        const next = new Date(this.value);
+        next.setDate(next.getDate() + 1);
+        const ny = next.getFullYear();
+        const nm = String(next.getMonth() + 1).padStart(2, '0');
+        const nd = String(next.getDate()).padStart(2, '0');
         checkOut.min = `${ny}-${nm}-${nd}`;
-
         if (checkOut.value && checkOut.value <= this.value) {
             checkOut.value = '';
         }
@@ -376,49 +358,14 @@ function setMinDates() {
     checkOut.addEventListener('change', calculateTotal);
 }
 
-// ========== СБРОС ФОРМЫ ==========
-function resetForm() {
-    const fields = ['guest-name','guest-phone','check-in','check-out','wishes'];
-    fields.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.value = '';
-    });
-
-    const nightsEl = document.getElementById('nights-display');
-    const totalEl  = document.getElementById('total-card');
-    if (nightsEl) nightsEl.style.display = 'none';
-    if (totalEl)  totalEl.style.display  = 'none';
-
-    state.guests       = 2;
-    state.selectedRoom = null;
-
-    const guestsEl = document.getElementById('guests-count');
-    if (guestsEl) guestsEl.textContent = '2';
-}
-
 // ========== ИНИЦИАЛИЗАЦИЯ ==========
-document.addEventListener('DOMContentLoaded', function() {
-    // Применяем тему
+document.addEventListener('DOMContentLoaded', function () {
     try {
-        const p = tg.themeParams;
-        if (p?.bg_color)
-            document.documentElement.style.setProperty('--bg', p.bg_color);
-        if (p?.button_color)
-            document.documentElement.style.setProperty('--accent', p.button_color);
+        tg.BackButton.onClick(() => goBack());
     } catch(e) {}
 
-    // BackButton
-    try {
-        tg.BackButton.onClick(() => {
-            goBack();
-        });
-    } catch(e) {}
-
-    // Минимальные даты
     setMinDates();
-
-    // Показываем главную
     goToScreen('screen-home');
 
-    console.log('✅ Гостевой дом загружен!');
+    console.log('✅ Приложение загружено!');
 });
