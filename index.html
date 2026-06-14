@@ -2,264 +2,515 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" 
-          content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Гостевой Дом</title>
-    <link rel="stylesheet" href="styles.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        /* ── Навигация ── */
+        .nav-bar {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: #fff;
+            border-top: 1px solid #eee;
+            display: flex;
+            z-index: 100;
+        }
+        .nav-item {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; padding: 8px 4px;
+            cursor: pointer; color: #999; font-size: 11px;
+            border: none; background: none;
+        }
+        .nav-item.active { color: #2196F3; }
+        .nav-item svg { margin-bottom: 3px; }
+
+        /* ── Страницы ── */
+        .page { display: none; padding: 16px 16px 80px; }
+        .page.active { display: block; }
+
+        /* ── Главная ── */
+        .hero {
+            background: linear-gradient(135deg, #1a73e8, #0d47a1);
+            border-radius: 16px; padding: 24px;
+            color: #fff; text-align: center; margin-bottom: 20px;
+        }
+        .hero h1 { font-size: 24px; margin-bottom: 8px; }
+        .hero p  { font-size: 14px; opacity: .85; }
+
+        .section-title {
+            font-size: 18px; font-weight: 700;
+            margin: 20px 0 12px;
+        }
+
+        /* ── Карточки номеров ── */
+        .room-card {
+            background: #fff; border-radius: 12px;
+            padding: 16px; margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.08);
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: border-color .2s;
+        }
+        .room-card:hover  { border-color: #2196F3; }
+        .room-card.selected { border-color: #2196F3; background: #e3f2fd; }
+        .room-name  { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+        .room-price { color: #2196F3; font-weight: 700; font-size: 15px; }
+        .room-desc  { color: #666; font-size: 13px; margin-top: 4px; }
+
+        /* ── Форма бронирования ── */
+        .form-section {
+            background: #fff; border-radius: 12px;
+            padding: 16px; margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.08);
+        }
+        .form-section h3 { font-size: 15px; font-weight: 700; margin-bottom: 12px; }
+        label { display: block; font-size: 11px; color: #888; margin-bottom: 4px; text-transform: uppercase; }
+        input[type=text], input[type=tel], input[type=date], textarea {
+            width: 100%; border: 1px solid #ddd; border-radius: 8px;
+            padding: 10px 12px; font-size: 15px;
+            margin-bottom: 12px; outline: none;
+            font-family: inherit;
+        }
+        input:focus, textarea:focus { border-color: #2196F3; }
+        textarea { resize: none; height: 70px; }
+
+        .dates-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+        /* ── Счётчик гостей ── */
+        .counter {
+            display: flex; align-items: center; gap: 16px;
+            margin-bottom: 12px;
+        }
+        .counter-btn {
+            width: 36px; height: 36px; border-radius: 50%;
+            border: 2px solid #2196F3; background: none;
+            color: #2196F3; font-size: 20px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700;
+        }
+        .counter-val { font-size: 20px; font-weight: 700; min-width: 24px; text-align: center; }
+
+        /* ── Итого ── */
+        .total-card {
+            background: #e3f2fd; border-radius: 12px;
+            padding: 14px 16px; margin-bottom: 16px;
+        }
+        .total-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 4px; }
+        .total-amount-row { font-size: 18px; font-weight: 700; color: #1a73e8; margin-top: 6px; }
+
+        /* ── Кнопки ── */
+        .btn-primary {
+            width: 100%; padding: 16px;
+            background: #2196F3; color: #fff;
+            border: none; border-radius: 12px;
+            font-size: 16px; font-weight: 700;
+            cursor: pointer; transition: background .2s;
+        }
+        .btn-primary:hover    { background: #1976D2; }
+        .btn-primary:disabled { background: #90CAF9; cursor: not-allowed; }
+
+        /* ── Экран успеха ── */
+        .success-screen {
+            display: none; position: fixed;
+            inset: 0; background: #fff;
+            z-index: 200; padding: 40px 20px;
+            text-align: center;
+        }
+        .success-screen.show { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .success-icon { font-size: 64px; margin-bottom: 16px; }
+        .success-screen h2 { font-size: 24px; margin-bottom: 8px; }
+        .success-screen p  { color: #666; margin-bottom: 6px; }
+        .success-details {
+            background: #f5f5f5; border-radius: 12px;
+            padding: 16px; margin: 20px 0; width: 100%; text-align: left;
+        }
+        .success-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
+        .success-row span:last-child { font-weight: 700; }
+
+        /* ── Контакты ── */
+        .contact-card {
+            background: #fff; border-radius: 12px;
+            padding: 16px; margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.08);
+        }
+        .contact-card h3 { margin-bottom: 8px; }
+        .contact-card a  { color: #2196F3; text-decoration: none; }
+
+        /* ── Мои брони ── */
+        .empty-state { text-align: center; color: #999; padding: 40px 0; font-size: 15px; }
+    </style>
 </head>
 <body>
-<div class="screens-wrapper">
 
-    <!-- ========== ГЛАВНАЯ ========== -->
-    <div id="screen-home" class="screen active">
-        <div class="hero">
-            <div class="hero-content">
-                <h1>🏖️ Гостевой Дом</h1>
-                <p>Уютный отдых у моря</p>
-                <button class="btn-primary btn-large"
-                        onclick="goToScreen('screen-rooms')">
-                    Смотреть номера
-                </button>
-            </div>
-        </div>
-    </div>
+<!-- ══════════════════════════════════
+     ЭКРАН УСПЕХА
+══════════════════════════════════ -->
+<div class="success-screen" id="success-screen">
+    <div class="success-icon">✅</div>
+    <h2>Заявка принята!</h2>
+    <p>Свяжемся с вами в течение 30 минут</p>
 
-    <!-- ========== НОМЕРА ========== -->
-    <div id="screen-rooms" class="screen">
-        <div class="screen-header">
-            <h2>Наши номера</h2>
-        </div>
-        <div class="rooms-list">
+    <div class="success-details" id="success-details"></div>
 
-            <!-- Номер 1 -->
-            <div class="room-card">
-                <div class="room-img room-img-1"></div>
-                <div class="room-info">
-                    <div class="room-header">
-                        <h3 class="room-name">Стандарт</h3>
-                        <div class="room-price">
-                            <span class="price-amount">2 500</span>
-                            <span class="price-period">₽/ночь</span>
-                        </div>
-                    </div>
-                    <div class="room-features">
-                        <span class="feature-tag">👥 2 гостя</span>
-                        <span class="feature-tag">📐 22 м²</span>
-                        <span class="feature-tag">🛏 2 кровати</span>
-                    </div>
-                    <!-- ✅ onclick="selectRoom(1)" -->
-                    <button class="btn-primary btn-large"
-                            onclick="selectRoom(1)">
-                        Выбрать номер
-                    </button>
-                </div>
-            </div>
-
-            <!-- Номер 2 -->
-            <div class="room-card">
-                <div class="room-img room-img-2"></div>
-                <div class="room-info">
-                    <div class="room-header">
-                        <h3 class="room-name">Люкс с видом</h3>
-                        <div class="room-price">
-                            <span class="price-amount">4 500</span>
-                            <span class="price-period">₽/ночь</span>
-                        </div>
-                    </div>
-                    <div class="room-features">
-                        <span class="feature-tag">👥 3 гостя</span>
-                        <span class="feature-tag">📐 35 м²</span>
-                        <span class="feature-tag">🛏 1 кровать</span>
-                    </div>
-                    <!-- ✅ onclick="selectRoom(2)" -->
-                    <button class="btn-primary btn-large"
-                            onclick="selectRoom(2)">
-                        Выбрать номер
-                    </button>
-                </div>
-            </div>
-
-            <!-- Номер 3 -->
-            <div class="room-card">
-                <div class="room-img room-img-3"></div>
-                <div class="room-info">
-                    <div class="room-header">
-                        <h3 class="room-name">Семейный</h3>
-                        <div class="room-price">
-                            <span class="price-amount">6 000</span>
-                            <span class="price-period">₽/ночь</span>
-                        </div>
-                    </div>
-                    <div class="room-features">
-                        <span class="feature-tag">👥 5 гостей</span>
-                        <span class="feature-tag">📐 50 м²</span>
-                        <span class="feature-tag">🛏 3 кровати</span>
-                    </div>
-                    <!-- ✅ onclick="selectRoom(3)" -->
-                    <button class="btn-primary btn-large"
-                            onclick="selectRoom(3)">
-                        Выбрать номер
-                    </button>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- ========== БРОНИРОВАНИЕ ========== -->
-    <div id="screen-booking" class="screen">
-        <div class="screen-header">
-            <h2>Бронирование</h2>
-        </div>
-        <div class="booking-form">
-
-            <!-- Выбранный номер -->
-            <div class="selected-room-card">
-                <span id="selected-room-name">—</span>
-                <span id="selected-room-price">—</span>
-            </div>
-
-            <!-- Гости -->
-            <div class="form-group">
-                <label>Количество гостей</label>
-                <div class="guests-counter">
-                    <button onclick="changeGuests(-1)">−</button>
-                    <span id="guests-count">2</span>
-                    <button onclick="changeGuests(1)">+</button>
-                </div>
-            </div>
-
-            <!-- Даты -->
-            <div class="form-group">
-                <label>Дата заезда</label>
-                <input type="date" id="check-in">
-            </div>
-            <div class="form-group">
-                <label>Дата выезда</label>
-                <input type="date" id="check-out">
-            </div>
-
-            <!-- Ночи -->
-            <div id="nights-display" 
-                 class="nights-display" 
-                 style="display:none">
-                <span>Ночей: </span>
-                <span id="nights-count"></span>
-                <span id="total-price"></span>
-            </div>
-
-            <!-- Данные гостя -->
-            <div class="form-group">
-                <label>Имя и фамилия</label>
-                <input type="text" 
-                       id="guest-name" 
-                       placeholder="Иван Иванов">
-            </div>
-            <div class="form-group">
-                <label>Телефон</label>
-                <input type="tel" 
-                       id="guest-phone" 
-                       placeholder="+7 (900) 000-00-00">
-            </div>
-            <div class="form-group">
-                <label>Пожелания (необязательно)</label>
-                <textarea id="wishes" 
-                          placeholder="Ранний заезд, высокий этаж...">
-                </textarea>
-            </div>
-
-            <!-- Итого -->
-            <div id="total-card" 
-                 class="total-card" 
-                 style="display:none">
-                <div class="total-row">
-                    <span id="total-room-name"></span>
-                    <span id="total-nights"></span>
-                </div>
-                <div class="total-row total-amount-row">
-                    <span>Итого:</span>
-                    <span id="total-amount"></span>
-                </div>
-            </div>
-
-            <!-- ✅ ГЛАВНАЯ КНОПКА ОТПРАВКИ -->
-            <button id="submit-btn" 
-                    class="btn-primary btn-large"
-                    onclick="submitBooking()">
-                Забронировать
-            </button>
-
-        </div>
-    </div>
-
-    <!-- ========== КОНТАКТЫ ========== -->
-    <div id="screen-contact" class="screen">
-        <div class="screen-header">
-            <h2>Контакты</h2>
-        </div>
-        <div class="contact-info">
-            <div class="contact-item">
-                <span>📞</span>
-                <a href="tel:+79001234567">+7 (900) 123-45-67</a>
-            </div>
-            <div class="contact-item">
-                <span>📍</span>
-                <span>ул. Морская, 1</span>
-            </div>
-            <div class="contact-item">
-                <span>✈️</span>
-                <a href="https://t.me/territorya_krasoty_bot">
-                    Написать в Telegram
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <!-- ========== УСПЕХ ========== -->
-    <div id="screen-success" class="screen">
-        <div class="success-content">
-            <div class="success-icon">✅</div>
-            <h2>Заявка принята!</h2>
-            <p>Свяжемся с вами в течение 30 минут</p>
-            <div id="success-details" class="success-details"></div>
-            <button class="btn-primary btn-large"
-                    onclick="goToScreen('screen-home')">
-                На главную
-            </button>
-        </div>
-    </div>
-
+    <button class="btn-primary" onclick="goHome()" style="margin-top:10px;">
+        На главную
+    </button>
 </div>
 
-<!-- ========== НАВБАР ========== -->
-<nav class="bottom-nav">
-    <button id="nav-home" 
-            class="nav-item active" 
-            onclick="goToScreen('screen-home')">
-        <span class="nav-icon">🏠</span>
-        <span class="nav-label">Главная</span>
+<!-- ══════════════════════════════════
+     СТРАНИЦА: ГЛАВНАЯ
+══════════════════════════════════ -->
+<div class="page active" id="page-home">
+    <div class="hero">
+        <h1>🏡 Гостевой Дом</h1>
+        <p>Уютный отдых у моря</p>
+    </div>
+
+    <div class="section-title">Наши номера</div>
+
+    <div class="room-card" onclick="selectRoom('Стандарт', 2000)">
+        <div class="room-name">🛏️ Стандарт</div>
+        <div class="room-price">2 000 ₽ / ночь</div>
+        <div class="room-desc">Уютный номер для двоих</div>
+    </div>
+
+    <div class="room-card" onclick="selectRoom('Комфорт', 2500)">
+        <div class="room-name">🛋️ Комфорт</div>
+        <div class="room-price">2 500 ₽ / ночь</div>
+        <div class="room-desc">Просторный номер с балконом</div>
+    </div>
+
+    <div class="room-card" onclick="selectRoom('Люкс', 3500)">
+        <div class="room-name">👑 Люкс</div>
+        <div class="room-price">3 500 ₽ / ночь</div>
+        <div class="room-desc">Лучший номер с видом на море</div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════
+     СТРАНИЦА: НОМЕРА
+══════════════════════════════════ -->
+<div class="page" id="page-rooms">
+    <div class="section-title">Все номера</div>
+
+    <div class="room-card" onclick="selectRoom('Стандарт', 2000)">
+        <div class="room-name">🛏️ Стандарт</div>
+        <div class="room-price">2 000 ₽ / ночь</div>
+        <div class="room-desc">Уютный номер · до 2 гостей</div>
+    </div>
+    <div class="room-card" onclick="selectRoom('Комфорт', 2500)">
+        <div class="room-name">🛋️ Комфорт</div>
+        <div class="room-price">2 500 ₽ / ночь</div>
+        <div class="room-desc">С балконом · до 3 гостей</div>
+    </div>
+    <div class="room-card" onclick="selectRoom('Люкс', 3500)">
+        <div class="room-name">👑 Люкс</div>
+        <div class="room-price">3 500 ₽ / ночь</div>
+        <div class="room-desc">Вид на море · до 4 гостей</div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════
+     СТРАНИЦА: БРОНИРОВАНИЕ
+══════════════════════════════════ -->
+<div class="page" id="page-booking">
+
+    <!-- Выбор номера -->
+    <div class="form-section">
+        <h3>🏠 Номер</h3>
+        <div class="room-card selected" id="selected-room-card">
+            <div class="room-name" id="selected-room-name">Стандарт</div>
+            <div class="room-price" id="selected-room-price">2 000 ₽ / ночь</div>
+        </div>
+    </div>
+
+    <!-- Даты -->
+    <div class="form-section">
+        <h3>📅 Даты</h3>
+        <div class="dates-row">
+            <div>
+                <label>Заезд</label>
+                <input type="date" id="check-in" onchange="updateTotal()">
+            </div>
+            <div>
+                <label>Выезд</label>
+                <input type="date" id="check-out" onchange="updateTotal()">
+            </div>
+        </div>
+
+        <div class="total-card" id="total-card" style="display:none;">
+            <div class="total-row">
+                <span id="total-room-name"></span>
+                <span id="total-nights"></span>
+            </div>
+            <div class="total-row total-amount-row">
+                <span>Итого:</span>
+                <span id="total-amount"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Данные гостя -->
+    <div class="form-section">
+        <h3>👤 Данные гостя</h3>
+        <label>Имя и фамилия</label>
+        <input type="text" id="guest-name" placeholder="Иван Иванов">
+
+        <label>Телефон</label>
+        <input type="tel" id="guest-phone" placeholder="+7 900 000-00-00">
+
+        <label>Количество гостей</label>
+        <div class="counter">
+            <button class="counter-btn" onclick="changeGuests(-1)">−</button>
+            <span class="counter-val" id="guest-count">2</span>
+            <button class="counter-btn" onclick="changeGuests(1)">+</button>
+        </div>
+
+        <label>Пожелания</label>
+        <textarea id="wishes" placeholder="Ранний заезд, детская кроватка..."></textarea>
+    </div>
+
+    <!-- Кнопка -->
+    <button class="btn-primary" id="submit-btn" onclick="submitBooking()">
+        Забронировать
     </button>
-    <button id="nav-rooms" 
-            class="nav-item" 
-            onclick="goToScreen('screen-rooms')">
-        <span class="nav-icon">🛏</span>
-        <span class="nav-label">Номера</span>
+</div>
+
+<!-- ══════════════════════════════════
+     СТРАНИЦА: КОНТАКТЫ
+══════════════════════════════════ -->
+<div class="page" id="page-contacts">
+    <div class="section-title">Контакты</div>
+
+    <div class="contact-card">
+        <h3>📞 Телефон</h3>
+        <p><a href="tel:+79001234567">+7 (900) 123-45-67</a></p>
+    </div>
+    <div class="contact-card">
+        <h3>📍 Адрес</h3>
+        <p>ул. Морская, 1, Анапа</p>
+    </div>
+    <div class="contact-card">
+        <h3>⏰ Режим работы</h3>
+        <p>Ежедневно: 08:00 – 22:00</p>
+    </div>
+    <div class="contact-card">
+        <h3>✉️ Email</h3>
+        <p><a href="mailto:info@guestdom.ru">info@guestdom.ru</a></p>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════
+     НАВИГАЦИЯ
+══════════════════════════════════ -->
+<nav class="nav-bar">
+    <button class="nav-item active" id="nav-home" onclick="showPage('home')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+        </svg>
+        Главная
     </button>
-    <button id="nav-booking" 
-            class="nav-item" 
-            onclick="goToScreen('screen-booking')">
-        <span class="nav-icon">📅</span>
-        <span class="nav-label">Бронь</span>
+    <button class="nav-item" id="nav-rooms" onclick="showPage('rooms')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V5H1v15h2v-3h18v3h2v-9c0-2.21-1.79-4-4-4z"/>
+        </svg>
+        Номера
     </button>
-    <button id="nav-contact" 
-            class="nav-item" 
-            onclick="goToScreen('screen-contact')">
-        <span class="nav-icon">📞</span>
-        <span class="nav-label">Контакты</span>
+    <button class="nav-item" id="nav-booking" onclick="showPage('booking')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/>
+        </svg>
+        Бронь
+    </button>
+    <button class="nav-item" id="nav-contacts" onclick="showPage('contacts')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+        </svg>
+        Контакты
     </button>
 </nav>
 
-<script src="app.js"></script>
+<script>
+    // ══════════════════════════════════
+    //  ИНИЦИАЛИЗАЦИЯ TELEGRAM
+    // ══════════════════════════════════
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
+
+    // ══════════════════════════════════
+    //  СОСТОЯНИЕ
+    // ══════════════════════════════════
+    let selectedRoom  = 'Стандарт';
+    let selectedPrice = 2000;
+    let guestCount    = 2;
+
+    // Минимальная дата — сегодня
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('check-in').min  = today;
+    document.getElementById('check-out').min = today;
+
+    // ══════════════════════════════════
+    //  НАВИГАЦИЯ
+    // ══════════════════════════════════
+    function showPage(name) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById('page-' + name).classList.add('active');
+        document.getElementById('nav-' + name).classList.add('active');
+    }
+
+    // ══════════════════════════════════
+    //  ВЫБОР НОМЕРА
+    // ══════════════════════════════════
+    function selectRoom(name, price) {
+        selectedRoom  = name;
+        selectedPrice = price;
+
+        // Обновляем карточку в форме бронирования
+        document.getElementById('selected-room-name').textContent  = name;
+        document.getElementById('selected-room-price').textContent = price.toLocaleString('ru') + ' ₽ / ночь';
+
+        updateTotal();
+        showPage('booking');
+    }
+
+    // ══════════════════════════════════
+    //  СЧЁТЧИК ГОСТЕЙ
+    // ══════════════════════════════════
+    function changeGuests(delta) {
+        guestCount = Math.max(1, Math.min(10, guestCount + delta));
+        document.getElementById('guest-count').textContent = guestCount;
+    }
+
+    // ══════════════════════════════════
+    //  ПОДСЧЁТ СУММЫ
+    // ══════════════════════════════════
+    function getNights() {
+        const ci = document.getElementById('check-in').value;
+        const co = document.getElementById('check-out').value;
+        if (!ci || !co) return 0;
+        const diff = (new Date(co) - new Date(ci)) / 86400000;
+        return diff > 0 ? diff : 0;
+    }
+
+    function updateTotal() {
+        const nights = getNights();
+        const card   = document.getElementById('total-card');
+
+        if (nights > 0) {
+            const total = nights * selectedPrice;
+            document.getElementById('total-room-name').textContent = selectedRoom;
+            document.getElementById('total-nights').textContent    = nights + ' ночей';
+            document.getElementById('total-amount').textContent    = total.toLocaleString('ru') + ' ₽';
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    }
+
+    // ══════════════════════════════════
+    //  ОТПРАВКА ЗАЯВКИ
+    // ══════════════════════════════════
+    function submitBooking() {
+        const name   = document.getElementById('guest-name').value.trim();
+        const phone  = document.getElementById('guest-phone').value.trim();
+        const checkIn  = document.getElementById('check-in').value;
+        const checkOut = document.getElementById('check-out').value;
+        const nights   = getNights();
+        const wishes   = document.getElementById('wishes').value.trim();
+
+        // Валидация
+        if (!name) {
+            alert('Введите имя и фамилию!');
+            document.getElementById('guest-name').focus();
+            return;
+        }
+        if (!phone) {
+            alert('Введите номер телефона!');
+            document.getElementById('guest-phone').focus();
+            return;
+        }
+        if (!checkIn || !checkOut || nights <= 0) {
+            alert('Выберите даты заезда и выезда!');
+            return;
+        }
+
+        const total = nights * selectedPrice;
+
+        const bookingData = {
+            name:     name,
+            phone:    phone,
+            room:     selectedRoom,
+            checkIn:  checkIn,
+            checkOut: checkOut,
+            nights:   nights,
+            guests:   guestCount,
+            total:    total,
+            wishes:   wishes || 'Нет'
+        };
+
+        // Блокируем кнопку
+        const btn = document.getElementById('submit-btn');
+        btn.disabled    = true;
+        btn.textContent = 'Отправляем...';
+
+        // Показываем экран успеха
+        showSuccessScreen(bookingData);
+
+        // Отправляем данные в Telegram бот
+        try {
+            tg.sendData(JSON.stringify(bookingData));
+        } catch (e) {
+            console.error('sendData error:', e);
+        }
+    }
+
+    // ══════════════════════════════════
+    //  ЭКРАН УСПЕХА
+    // ══════════════════════════════════
+    function showSuccessScreen(data) {
+        const details = document.getElementById('success-details');
+        details.innerHTML = `
+            <div class="success-row"><span>Номер</span><span>${data.room}</span></div>
+            <div class="success-row"><span>Заезд</span><span>${data.checkIn}</span></div>
+            <div class="success-row"><span>Выезд</span><span>${data.checkOut}</span></div>
+            <div class="success-row"><span>Ночей</span><span>${data.nights}</span></div>
+            <div class="success-row"><span>Гостей</span><span>${data.guests}</span></div>
+            <div class="success-row"><span>Итого</span><span>${data.total.toLocaleString('ru')} ₽</span></div>
+        `;
+        document.getElementById('success-screen').classList.add('show');
+    }
+
+    // ══════════════════════════════════
+    //  ВЕРНУТЬСЯ НА ГЛАВНУЮ
+    // ══════════════════════════════════
+    function goHome() {
+        document.getElementById('success-screen').classList.remove('show');
+
+        // Сброс формы
+        document.getElementById('guest-name').value  = '';
+        document.getElementById('guest-phone').value = '';
+        document.getElementById('check-in').value    = '';
+        document.getElementById('check-out').value   = '';
+        document.getElementById('wishes').value      = '';
+        document.getElementById('total-card').style.display = 'none';
+        guestCount = 2;
+        document.getElementById('guest-count').textContent = '2';
+
+        const btn = document.getElementById('submit-btn');
+        btn.disabled    = false;
+        btn.textContent = 'Забронировать';
+
+        showPage('home');
+    }
+</script>
+
 </body>
 </html>
